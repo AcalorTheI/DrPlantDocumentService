@@ -1,0 +1,44 @@
+services:
+  document-service:
+    image: docker.io/acalor/document-service:release1
+    restart: always
+    environment:
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+    ports:
+      - 5005:5005
+      - 8091:8091
+  db:
+    image: mysql
+    # NOTE: use of "mysql_native_password" is not recommended: https://dev.mysql.com/doc/refman/8.0/en/upgrading-from-previous-series.html#upgrade-caching-sha2-password
+    # (this is just an example, not intended to be a production configuration)
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    ports:
+      - 3306:3306      
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  minio:
+    image: docker.io/bitnami/minio:2022
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - minionetwork
+    volumes:
+      - 'minio_data:/data'
+    environment:
+      - MINIO_ROOT_USER=root
+      - MINIO_ROOT_PASSWORD=admin1234
+      - MINIO_DEFAULT_BUCKETS=dr-plant-images-analysis
+networks:
+  minionetwork:
+    driver: bridge
+
+volumes:
+    minio_data:
+      driver: local
